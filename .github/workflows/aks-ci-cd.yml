@@ -24,7 +24,7 @@ jobs:
     - name: Build & Push Docker image
       run: |
         IMAGE=${{ secrets.ACR_LOGIN_SERVER }}/demo-app:${{ github.sha }}
-        docker build -t $IMAGE .
+        docker build -t $IMAGE -f DockerFile .
         docker push $IMAGE
         echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
