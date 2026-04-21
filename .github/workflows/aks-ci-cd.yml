@@ -10,19 +10,23 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Azure Login
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Build and Push Image to ACR
-      uses: azure/acr-build@v1
-      with:
-        registry: ${{ secrets.ACR_NAME }}
-        image: demo-app
-        tag: ${{ github.sha }}
+    - name: Login to ACR
+      run: |
+        az acr login --name ${{ secrets.ACR_NAME }}
+
+    - name: Build & Push Docker image
+      run: |
+        IMAGE=${{ secrets.ACR_LOGIN_SERVER }}/demo-app:${{ github.sha }}
+        docker build -t $IMAGE .
+        docker push $IMAGE
+        echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
     - name: Set AKS Context
       uses: azure/aks-set-context@v3
@@ -37,4 +41,4 @@ jobs:
           k8s/deployment.yaml
           k8s/service.yaml
         images: |
-          ${{ secrets.ACR_LOGIN_SERVER }}/demo-app:${{ github.sha }}
+          ${{ env.IMAGE }}
